@@ -9,9 +9,8 @@ namespace M183_Blog.Models
     public class Token
     {
         public Guid Id { get; set; }
-        public User User { get; set; }
-        public string Value { get; set; }
-        [Timestamp]
+        public virtual User User { get; set; }
+        public int Value { get; set; }
         public DateTime TimeStamp { get; set; }
     }
 }

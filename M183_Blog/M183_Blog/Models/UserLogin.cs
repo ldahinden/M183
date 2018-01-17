@@ -9,10 +9,9 @@ namespace M183_Blog.Models
     public class UserLogin
     {
         public Guid Id { get; set; }
-        public User User { get; set; }
+        public virtual User User { get; set; }
         public string Ip { get; set; }
         public string SessionId { get; set; }
-        [Timestamp]
         public DateTime Timestamp { get; set; }
     }
 }
