@@ -15,28 +15,35 @@ namespace M183_Blog.Controllers
 
         public ActionResult Index()
         {
-            /*var argon2 = new PasswordHasher();
-            db.User.Add(new User
+            var argon2 = new PasswordHasher();
+            if (db.User.FirstOrDefault(u => u.Username == "user@user.com") == null)
             {
-                Username = " user@user.com ",
-                Password = argon2.Hash("user"),
-                PhoneNumber = "000000000",
-                FirstName = "Test",
-                LastName = "User",
-                Role = Role.User,
-                Active = true
-            });
-            db.User.Add(new User
+                db.User.Add(new User
+                {
+                    Username = "user@user.com",
+                    Password = argon2.Hash("user"),
+                    PhoneNumber = "000000000",
+                    FirstName = "Test",
+                    LastName = "User",
+                    Role = Role.User,
+                    Active = true
+                });
+                db.SaveChanges();
+            }
+            if (db.User.FirstOrDefault(u => u.Username == "admin@admin.com") == null)
             {
-                Username = " admin@admin.com ",
-                Password = argon2.Hash("admin"),
-                PhoneNumber = "000000000",
-                FirstName = "Test",
-                LastName = "Admin",
-                Role = Role.Administrator,
-                Active = true
-            });
-            db.SaveChanges();*/
+                db.User.Add(new User
+                {
+                    Username = "admin@admin.com",
+                    Password = argon2.Hash("admin"),
+                    PhoneNumber = "000000000",
+                    FirstName = "Test",
+                    LastName = "Admin",
+                    Role = Role.Administrator,
+                    Active = true
+                });
+                db.SaveChanges();
+            }
 
             return View();
         }
@@ -143,11 +150,11 @@ namespace M183_Blog.Controllers
 
             if (user.Role == Role.User)
             {
-                return RedirectToAction(nameof(UserController.Dashboard), "User");
+                return RedirectToAction(nameof(UserController.Dashboard), nameof(UserController));
             }
             else if (user.Role == Role.Administrator)
             {
-                return RedirectToAction(nameof(AdminController.Dashboard), "Admin");
+                return RedirectToAction(nameof(AdminController.Dashboard), nameof(AdminController));
             }
 
             return RedirectToAction(nameof(Index));
@@ -182,7 +189,7 @@ namespace M183_Blog.Controllers
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
-            db.Dispose();
+            db?.Dispose();
         }
     }
 }
