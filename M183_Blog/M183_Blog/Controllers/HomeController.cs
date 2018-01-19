@@ -1,5 +1,6 @@
 ﻿using Liphsoft.Crypto.Argon2;
 using M183_Blog.Models;
+using M183_Blog.Nexmo;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,32 @@ namespace M183_Blog.Controllers
     {
         public ActionResult Index()
         {
+            //var argon2 = new PasswordHasher();
+
+            //using (var db = new DataAccess())
+            //{
+            //    db.User.Add(new User
+            //    {
+            //        Username = "user@user.com",
+            //        Password = argon2.Hash("user"),
+            //        PhoneNumber = "000000000",
+            //        FirstName = "Test",
+            //        LastName = "User",
+            //        Role = Role.User,
+            //        Active = true
+            //    });
+            //    db.User.Add(new User
+            //    {
+            //        Username = "admin@admin.com",
+            //        Password = argon2.Hash("admin"),
+            //        PhoneNumber = "000000000",
+            //        FirstName = "Test",
+            //        LastName = "Admin",
+            //        Role = Role.Administrator,
+            //        Active = true
+            //    });
+            //}
+
             return View();
         }
 
@@ -31,12 +58,18 @@ namespace M183_Blog.Controllers
 
         public ActionResult Login()
         {
-            ViewBag.Message = "Login";
+            ViewBag.Title = "Login";
+            return View();
+        }
+
+        public ActionResult Pin()
+        {
+            ViewBag.Title = "Pin";
             return View();
         }
 
         [HttpPost]
-        public RedirectToRouteResult DoLogin()
+        public ActionResult DoLogin()
         {
             var email = Request["email"];
             var password = Request["password"];
@@ -50,8 +83,46 @@ namespace M183_Blog.Controllers
                     if (hasher.Verify(user.Password, password))
                     {
                         SendSMS(user);
+                        Session.Add("userId", user.Id);
+                        return RedirectToAction(nameof(Pin));
                     }
                 }
+            }
+
+            return RedirectToAction(nameof(Login));
+        }
+
+        public ActionResult CheckPin()
+        {
+            var pin = Request["pin"];
+            var userId = Session["userId"];
+            if (userId == null)
+            {
+                return RedirectToAction(nameof(Login));
+            }
+
+            Guid id = (Guid)userId;
+
+            using (var db = new DataAccess())
+            {
+                var user = db.User.FirstOrDefault(u => u.Id == id);
+                if (user == null)
+                {
+                    return RedirectToAction(nameof(Login));
+                }
+
+                var token = db.Token.FirstOrDefault(t => t.User == user);
+                if (token == null)
+                {
+                    return RedirectToAction(nameof(Login));
+                }
+
+                if (token.TimeStamp < DateTime.Now.AddMinutes(-5) || token.Value != pin)
+                {
+                    return RedirectToAction(nameof(Login));
+                }
+
+                Session["loggedin"] = true;
             }
 
             return RedirectToAction(nameof(Index));
@@ -60,21 +131,29 @@ namespace M183_Blog.Controllers
         private void SendSMS(User user)
         {
             Random r = new Random();
-            int token = r.Next(100000, 1000000);
+            var token = new Token
+            {
+                User = user,
+                Value = r.Next(100000, 1000000).ToString(),
+                TimeStamp = DateTime.Now
+            };
+            
             using (var db = new DataAccess())
             {
-                db.Token.Add(new Token
-                {
-                    User = user,
-                    Value = token,
-                    TimeStamp = DateTime.Now
-                });
-
+                db.Token.Add(token);
                 db.SaveChanges();
             }
 
+            var sms = new NexmoRequest
+            {
+                from = "M183 Blog Engine",
+                text = token.Value,
+                to = token.User.PhoneNumber,
+                api_key = "",
+                api_secret = ""
+            };
 
-
+            sms.Send();
         }
     }
 }

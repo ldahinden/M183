@@ -10,7 +10,7 @@ namespace M183_Blog.Models
     {
         public Guid Id { get; set; }
         public virtual User User { get; set; }
-        public int Value { get; set; }
+        public string Value { get; set; }
         public DateTime TimeStamp { get; set; }
     }
 }
