@@ -28,7 +28,6 @@ namespace M183_Blog.Controllers
                     Role = Role.User,
                     Active = true
                 });
-                db.SaveChanges();
             }
             if (db.User.FirstOrDefault(u => u.Username == "admin@admin.com") == null)
             {
@@ -42,9 +41,7 @@ namespace M183_Blog.Controllers
                     Role = Role.Administrator,
                     Active = true
                 });
-                db.SaveChanges();
             }
-
             return View();
         }
 
@@ -64,12 +61,14 @@ namespace M183_Blog.Controllers
 
         public ActionResult Login()
         {
+            ViewBag.Error = TempData["error"];
             ViewBag.Title = "Login";
             return View();
         }
 
         public ActionResult Pin()
         {
+            ViewBag.Error = TempData["error"];
             ViewBag.Title = "Pin";
             return View();
         }
@@ -89,13 +88,31 @@ namespace M183_Blog.Controllers
                     Session.Add("userId", user.Id);
                     return RedirectToAction(nameof(Pin));
                 }
+                db.Userlog.Add(new Userlog
+                {
+                    User = user,
+                    Action = $"Wrong Password {password}"
+                });
             }
+
+            TempData["error"] = "Wrong Credentials";
+
 
             return RedirectToAction(nameof(Login));
         }
 
         public ActionResult Logout()
         {
+            var userLogin = db.UserLogin.FirstOrDefault(ul => ul.SessionId == Session.SessionID);
+            if (userLogin != null)
+            {
+                userLogin.Active = false;
+            }
+            db.Userlog.Add(new Userlog
+            {
+                User = userLogin.User,
+                Action = "Logout"
+            });
             Session.Abandon();
             return RedirectToAction(nameof(Login));
         }
@@ -106,6 +123,7 @@ namespace M183_Blog.Controllers
             var userId = Session["userId"];
             if (userId == null)
             {
+                // dont show any error message, because someone wants to access pin page without login
                 return RedirectToAction(nameof(Login));
             }
 
@@ -114,17 +132,25 @@ namespace M183_Blog.Controllers
             var user = db.User.FirstOrDefault(u => u.Id == id);
             if (user == null)
             {
+                // dont show any error message, because someone wants to access pin page without login
                 return RedirectToAction(nameof(Login));
             }
 
             var token = db.Token.OrderByDescending(t => t.TimeStamp).FirstOrDefault(t => t.User.Id == user.Id && t.Active);
             if (token == null)
             {
+                // dont show any error message, because someone wants to access pin page without login
                 return RedirectToAction(nameof(Login));
             }
 
             if (token.TimeStamp < DateTime.Now.AddMinutes(-5) || token.Value != pin)
             {
+                TempData["error"] = "Token invalid or expired";
+                db.Userlog.Add(new Userlog
+                {
+                    User = user,
+                    Action = "Token invalid or expired"
+                });
                 return RedirectToAction(nameof(Pin));
             }
 
@@ -146,15 +172,13 @@ namespace M183_Blog.Controllers
                 Timestamp = DateTime.Now
             });
 
-            db.SaveChanges();
-
             if (user.Role == Role.User)
             {
-                return RedirectToAction(nameof(UserController.Dashboard), nameof(UserController));
+                return RedirectToAction(nameof(UserController.Dashboard), "User");
             }
             else if (user.Role == Role.Administrator)
             {
-                return RedirectToAction(nameof(AdminController.Dashboard), nameof(AdminController));
+                return RedirectToAction(nameof(AdminController.Dashboard), "Admin");
             }
 
             return RedirectToAction(nameof(Index));
@@ -170,9 +194,8 @@ namespace M183_Blog.Controllers
                 TimeStamp = DateTime.Now,
                 Active = true
             };
-            
+
             db.Token.Add(token);
-            db.SaveChanges();
 
             var sms = new NexmoRequest
             {
@@ -188,8 +211,9 @@ namespace M183_Blog.Controllers
 
         protected override void Dispose(bool disposing)
         {
-            base.Dispose(disposing);
+            db?.SaveChanges();
             db?.Dispose();
+            base.Dispose(disposing);
         }
     }
 }
