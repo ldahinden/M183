@@ -13,5 +13,6 @@ namespace M183_Blog.Models
         public DbSet<Token> Token { get; set; }
         public DbSet<User> User { get; set; }
         public DbSet<UserLogin> UserLogin { get; set; }
+        public DbSet<Userlog> Userlog { get; set; }
     }
 }

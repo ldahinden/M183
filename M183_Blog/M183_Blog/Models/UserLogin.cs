@@ -16,5 +16,6 @@ namespace M183_Blog.Models
         public string Ip { get; set; }
         public string SessionId { get; set; }
         public DateTime Timestamp { get; set; }
+        public bool Active { get; set; }
     }
 }
