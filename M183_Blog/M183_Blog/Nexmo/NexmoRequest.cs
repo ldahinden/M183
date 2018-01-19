@@ -21,14 +21,7 @@ namespace M183_Blog.Nexmo
             var client = new HttpClient();
             var url = @"https://rest.nexmo.com/sms/json";
 
-            var json = JsonConvert.SerializeObject(new NexmoRequest
-            {
-                from = "test123",
-                text = "test",
-                to = "+41795592648",
-                api_key = "",
-                api_secret = ""
-            });
+            var json = JsonConvert.SerializeObject(this);
 
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
