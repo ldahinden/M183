@@ -13,32 +13,6 @@ namespace M183_Blog.Controllers
     {
         public ActionResult Index()
         {
-            //var argon2 = new PasswordHasher();
-
-            //using (var db = new DataAccess())
-            //{
-            //    db.User.Add(new User
-            //    {
-            //        Username = "user@user.com",
-            //        Password = argon2.Hash("user"),
-            //        PhoneNumber = "000000000",
-            //        FirstName = "Test",
-            //        LastName = "User",
-            //        Role = Role.User,
-            //        Active = true
-            //    });
-            //    db.User.Add(new User
-            //    {
-            //        Username = "admin@admin.com",
-            //        Password = argon2.Hash("admin"),
-            //        PhoneNumber = "000000000",
-            //        FirstName = "Test",
-            //        LastName = "Admin",
-            //        Role = Role.Administrator,
-            //        Active = true
-            //    });
-            //}
-
             return View();
         }
 
