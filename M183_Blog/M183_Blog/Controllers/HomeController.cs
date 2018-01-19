@@ -85,7 +85,7 @@ namespace M183_Blog.Controllers
                     return RedirectToAction(nameof(Login));
                 }
 
-                var token = db.Token.FirstOrDefault(t => t.User == user);
+                var token = db.Token.FirstOrDefault(t => t.User.Id == user.Id);
                 if (token == null)
                 {
                     return RedirectToAction(nameof(Login));
