@@ -206,6 +206,7 @@ namespace M183_Blog.Controllers
                         if (user.Active)
                         {
                             user.Active = false;
+                            token.Active = false;
 
                             db.Userlog.Add(new Userlog
                             {
