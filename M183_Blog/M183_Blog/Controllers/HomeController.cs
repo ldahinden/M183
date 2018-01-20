@@ -149,7 +149,7 @@ namespace M183_Blog.Controllers
                 db.Userlog.Add(new Userlog
                 {
                     User = user,
-                    Action = "Token invalid or expired"
+                    Action = "Pin invalid or expired"
                 });
                 return RedirectToAction(nameof(Pin));
             }

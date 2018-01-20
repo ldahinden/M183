@@ -27,7 +27,11 @@
                 <ul class="nav navbar-right">
                     @if (Session["loggedin"] != null && (bool)Session["loggedin"])
                     {
-                    <li>@Html.ActionLink("Logout", "Logout", "Home")</li>
+                        <li>@Html.ActionLink("Logout", "Logout", "Home")</li>
+                    }
+                    @if (Session["loggedin"] == null || !(bool)Session["loggedin"])
+                    {
+                        <li>@Html.ActionLink("Login", "Login", "Home")</li>
                     }
                 </ul>
             </div>
