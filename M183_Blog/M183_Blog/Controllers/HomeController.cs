@@ -11,6 +11,21 @@ namespace M183_Blog.Controllers
 {
     public class HomeController : Controller
     {
+
+        /*
+            Fragen
+
+            1   Username nicht gehasht da E-Mail für Informationszwecke oder Password Reset Funktion verwendet werden könnte
+                Argon2 ist einer der besten hash Algorithmen mit KeyDerivation
+                Bei diesem Algorithmus kann memory cost und iteratinoen der Zeit und Leistung der Computer angepasst werden
+            
+            2   Session Hijacking, da die Session nur gültig ist mit der Ip wo sich der User eingeloggt hat
+
+            3   Cookie mit SessionId wird gestohlen und verwendet um sich als diesen user zu identifizieren.
+                Die Session wird nur erfolgreich herausgegeben wenn die Ip des Clients die gleiche ist wie zum Zeitpunkt des Logins
+
+        */
+
         private DataAccess db = new DataAccess();
 
         public ActionResult Index()
@@ -84,10 +99,42 @@ namespace M183_Blog.Controllers
                 PasswordHasher hasher = new PasswordHasher();
                 if (hasher.Verify(user.Password, password))
                 {
+                    if (!user.Active)
+                    {
+                        TempData["error"] = "User Blocked";
+                        return RedirectToAction(nameof(Login));
+                    }
+
+                    Session.Remove("tries");
                     SendSMS(user);
                     Session.Add("userId", user.Id);
                     return RedirectToAction(nameof(Pin));
                 }
+
+                if (Session["tries"] == null)
+                {
+                    Session.Add("tries", 0);
+                }
+                else
+                {
+                    int tries = (int)Session["tries"];
+                    Session["tries"] = ++tries;
+
+                    if (tries > 2)
+                    {
+                        if (user.Active)
+                        {
+                            user.Active = false;
+
+                            db.Userlog.Add(new Userlog
+                            {
+                                User = user,
+                                Action = "User Blocked"
+                            });
+                        }
+                    }
+                }
+
                 db.Userlog.Add(new Userlog
                 {
                     User = user,
@@ -145,6 +192,30 @@ namespace M183_Blog.Controllers
 
             if (token.TimeStamp < DateTime.Now.AddMinutes(-5) || token.Value != pin)
             {
+                if (Session["tries"] == null)
+                {
+                    Session.Add("tries", 0);
+                }
+                else
+                {
+                    int tries = (int)Session["tries"];
+                    Session["tries"] = ++tries;
+
+                    if (tries > 2)
+                    {
+                        if (user.Active)
+                        {
+                            user.Active = false;
+
+                            db.Userlog.Add(new Userlog
+                            {
+                                User = user,
+                                Action = "User Blocked"
+                            });
+                        }
+                    }
+                }
+
                 TempData["error"] = "Token invalid or expired";
                 db.Userlog.Add(new Userlog
                 {
