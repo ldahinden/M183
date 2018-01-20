@@ -273,7 +273,7 @@ namespace M183_Blog.Controllers
             {
                 from = "m183",
                 text = token.Value,
-                to = "0000000000",
+                to = user.PhoneNumber,
                 api_key = "",
                 api_secret = ""
             };
